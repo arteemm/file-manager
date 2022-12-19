@@ -1,6 +1,5 @@
 import { readdir, access } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { parse } from 'node:path';
+import { resolve, parse, isAbsolute } from 'node:path';
 
 export const ls = async (path) => {
   try {
@@ -25,7 +24,10 @@ export const ls = async (path) => {
 
 export const cd = async (currentDir, path) => {
   try {
-    const resolvePath = resolve(currentDir, path);
+    let resolvePath = resolve(path);
+    if (!isAbsolute(path)) {
+      resolvePath = resolve(currentDir, path);
+    }
     await access(resolvePath);
     return resolvePath;
   } catch (err) {

@@ -10,10 +10,15 @@ const { stdin, stdout } = process;
 const userHomeDir = homedir();
 export let currentDir = userHomeDir;
 
+const printMessage = async () => {
+  const messageCurrentDir = `\nYou are currently in ${currentDir}\n`;
+  stdout.write(messageCurrentDir);
+};
+
 const getCommandOptions = (argv) => {
   let options = '';
   let command = '';
-  if (argv.startsWith('up') || argv.startsWith('ls')) {
+  if (argv.startsWith('up') || argv.startsWith('ls') || argv.startsWith('.exit')) {
     return { command: argv, options };
   }
 
@@ -57,9 +62,10 @@ export const commandHandler = async (argv) => {
       case '.exit' : process.exit();
       break;
       case 'up' : currentDir = await up(currentDir);
-      stdout.write(currentDir + '\n');
+        await printMessage();
       break;
       case 'ls' : await ls(currentDir);
+        await printMessage();
       break;
       case 'cd' : await cd(currentDir, options)
         .catch(() => {
@@ -67,31 +73,41 @@ export const commandHandler = async (argv) => {
           return currentDir;
         })
         .then(path => currentDir = path)
-        .then(() => stdout.write(currentDir + '\n'));
+        await printMessage();
       break;
-      case 'cat' : await readFile(currentDir, options);
+      case 'cat' : await readFile(options);
+        await printMessage();
       break;
       case 'add' : await createFile(currentDir, options);
+        await printMessage();
       break;
-      case 'rn' : await renameFile(currentDir, options);
+      case 'rn' : await renameFile(options);
+        await printMessage();
       break;
-      case 'cp' : await copyFile(currentDir, options);
+      case 'cp' : await copyFile(options);
+        await printMessage();
       break;
-      case 'mv' : await moveFile(currentDir, options);
+      case 'mv' : await moveFile(options);
+        await printMessage();
       break;
       case 'rm' : await removeFile(options);
+        await printMessage();
       break;
       case 'os' : await osCommandHandler(options);
+        await printMessage();
       break;
       case 'hash' : await getHash(options);
+        await printMessage();
       break;
       case 'compress' : await zipHandler(command, options);
+        await printMessage();
       break;
       case 'decompress' : await zipHandler(command, options);
+        await printMessage();
       break;
-      default: console.log('WRONG');
+      default: console.log('Invalid command, please print correct command!');
     }
   } catch (err) {
-    console.log(err);
+    console.log('Operation failed', err);
   }
 };

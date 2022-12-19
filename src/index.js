@@ -8,7 +8,7 @@ const messageCurrentDir = `You are currently in ${currentDir}`;
 const userName = getUserName();
 
 const startMessage = `Welcome to the File Manager, ${userName}!\n
-${messageCurrentDir}\n`;
+${messageCurrentDir}\nPlease, print your command  `;
 
 
 stdout.write(startMessage);
