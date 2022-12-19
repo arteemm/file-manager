@@ -2,6 +2,7 @@ import { readFile, createFile, renameFile, copyFile, moveFile } from '../fs/inde
 import { ls, cd, up } from '../navigation/index.js';
 import { homedir } from 'node:os';
 import { osCommandHandler } from '../os_info/index.js';
+import { getHash } from '../hash/index.js';
 
 const { stdin, stdout } = process;
 
@@ -34,39 +35,50 @@ const getCommandOptions = (argv) => {
     command = argv.slice(0, 3);
   }
 
+  if (argv.startsWith('hash ')) {
+    options = argv.slice(5).trim();
+    command = argv.slice(0, 4);
+  }
+
   return { command, options };
 };
 
 export const commandHandler = async (argv) => {
-  const { command, options } = getCommandOptions(argv);
-  switch (command) {
-    case '.exit' : process.exit();
-    break;
-    case 'up' : currentDir = await up(currentDir);
-    stdout.write(currentDir + '\n');
-    break;
-    case 'ls' : await ls(currentDir);
-    break;
-    case 'cd' : await cd(currentDir, options)
-      .catch(() => {
-        stdout.write('You wrote invalid path\n');
-        return currentDir;
-      })
-      .then(path => currentDir = path)
-      .then(() => stdout.write(currentDir + '\n'));
-    break;
-    case 'cat' : await readFile(currentDir, options);
-    break;
-    case 'add' : await createFile(currentDir, options);
-    break;
-    case 'rn' : await renameFile(currentDir, options);
-    break;
-    case 'cp' : await copyFile(currentDir, options);
-    break;
-    case 'mv' : await moveFile(currentDir, options);
-    break;
-    case 'os' : await osCommandHandler(options);
-    break;
-    default: console.log('WRONG');
+  try {
+    const { command, options } = getCommandOptions(argv);
+    switch (command) {
+      case '.exit' : process.exit();
+      break;
+      case 'up' : currentDir = await up(currentDir);
+      stdout.write(currentDir + '\n');
+      break;
+      case 'ls' : await ls(currentDir);
+      break;
+      case 'cd' : await cd(currentDir, options)
+        .catch(() => {
+          stdout.write('You wrote invalid path\n');
+          return currentDir;
+        })
+        .then(path => currentDir = path)
+        .then(() => stdout.write(currentDir + '\n'));
+      break;
+      case 'cat' : await readFile(currentDir, options);
+      break;
+      case 'add' : await createFile(currentDir, options);
+      break;
+      case 'rn' : await renameFile(currentDir, options);
+      break;
+      case 'cp' : await copyFile(currentDir, options);
+      break;
+      case 'mv' : await moveFile(currentDir, options);
+      break;
+      case 'os' : await osCommandHandler(options);
+      break;
+      case 'hash' : await getHash(options);
+      break;
+      default: console.log('WRONG');
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
