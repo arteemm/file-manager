@@ -1,8 +1,9 @@
-import { readFile, createFile, renameFile, copyFile, moveFile } from '../fs/index.js';
+import { readFile, createFile, renameFile, copyFile, moveFile, removeFile } from '../fs/index.js';
 import { ls, cd, up } from '../navigation/index.js';
 import { homedir } from 'node:os';
 import { osCommandHandler } from '../os_info/index.js';
 import { getHash } from '../hash/index.js';
+import { zipHandler } from '../zlib/index.js';
 
 const { stdin, stdout } = process;
 
@@ -25,6 +26,7 @@ const getCommandOptions = (argv) => {
     || argv.startsWith('rn ')
     || argv.startsWith('cp ')
     || argv.startsWith('mv ')
+    || argv.startsWith('rm ')
   ) {
     options = argv.slice(3).trim();
     command = argv.slice(0, 2);
@@ -33,6 +35,11 @@ const getCommandOptions = (argv) => {
   if (argv.startsWith('cat ') || argv.startsWith('add ')) {
     options = argv.slice(4).trim();
     command = argv.slice(0, 3);
+  }
+
+  if (argv.startsWith('compress ') || argv.startsWith('decompress ')) {
+    options = argv.split(' ').slice(1).join(' ').trim();
+    command = argv.split(' ')[0];
   }
 
   if (argv.startsWith('hash ')) {
@@ -72,9 +79,15 @@ export const commandHandler = async (argv) => {
       break;
       case 'mv' : await moveFile(currentDir, options);
       break;
+      case 'rm' : await removeFile(options);
+      break;
       case 'os' : await osCommandHandler(options);
       break;
       case 'hash' : await getHash(options);
+      break;
+      case 'compress' : await zipHandler(command, options);
+      break;
+      case 'decompress' : await zipHandler(command, options);
       break;
       default: console.log('WRONG');
     }
