@@ -1,0 +1,72 @@
+import { readFile, createFile, renameFile, copyFile, moveFile } from '../fs/index.js';
+import { ls, cd, up } from '../navigation/index.js';
+import { homedir } from 'node:os';
+import { osCommandHandler } from '../os_info/index.js';
+
+const { stdin, stdout } = process;
+
+const userHomeDir = homedir();
+export let currentDir = userHomeDir;
+
+const getCommandOptions = (argv) => {
+  let options = '';
+  let command = '';
+  if (argv.startsWith('up') || argv.startsWith('ls')) {
+    return { command: argv, options };
+  }
+
+  if (argv.startsWith('os')) {
+    const options = argv.replace('os', '').trim();
+    return {command: 'os', options };
+  }
+
+  if (argv.startsWith('cd ')
+    || argv.startsWith('rn ')
+    || argv.startsWith('cp ')
+    || argv.startsWith('mv ')
+  ) {
+    options = argv.slice(3).trim();
+    command = argv.slice(0, 2);
+  }
+
+  if (argv.startsWith('cat ') || argv.startsWith('add ')) {
+    options = argv.slice(4).trim();
+    command = argv.slice(0, 3);
+  }
+
+  return { command, options };
+};
+
+export const commandHandler = async (argv) => {
+  const { command, options } = getCommandOptions(argv);
+  switch (command) {
+    case '.exit' : process.exit();
+    break;
+    case 'up' : currentDir = await up(currentDir);
+    stdout.write(currentDir + '\n');
+    break;
+    case 'ls' : await ls(currentDir);
+    break;
+    case 'cd' : await cd(currentDir, options)
+      .catch(() => {
+        stdout.write('You wrote invalid path\n');
+        return currentDir;
+      })
+      .then(path => currentDir = path)
+      .then(() => stdout.write(currentDir + '\n'));
+    break;
+    case 'cat' : await readFile(currentDir, options);
+    break;
+    case 'add' : await createFile(currentDir, options);
+    break;
+    case 'rn' : await renameFile(currentDir, options);
+    break;
+    case 'cp' : await copyFile(currentDir, options);
+    break;
+    case 'mv' : await moveFile(currentDir, options);
+    break;
+    case 'os' : await osCommandHandler(options);
+    break;
+    default: console.log('WRONG');
+  }
+};

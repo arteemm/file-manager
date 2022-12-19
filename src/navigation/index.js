@@ -1,5 +1,6 @@
 import { readdir, access } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { parse } from 'node:path';
 
 export const ls = async (path) => {
   try {
@@ -31,3 +32,5 @@ export const cd = async (currentDir, path) => {
     throw new Error(err);
   }
 };
+
+export const up = async (dir) => parse(dir).dir;
